@@ -54,13 +54,8 @@ public class RetrofitUtil {
         return mInstance;
     }
 
-    public void getlogin(String user, String word, Subscriber<WeatherModel> subscriber){
-        mApiService.getlogin(user,word)
-                .subscribeOn(Schedulers.io())
-                .unsubscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(subscriber);
-    }
+
+
     public void BaseLoadWeatherData(String cityid,Subscriber<WeatherModel> subscriber){
         Log.e("1111","22222");
         mApiService.loadDataByRetrofitRxjava(cityid)
@@ -70,11 +65,11 @@ public class RetrofitUtil {
                 .subscribe(subscriber);
     }
 
-
-    private <T> void toSubscribe(Observable<T> observable,Subscriber<T> subscriber){
-        observable.subscribeOn(Schedulers.io())
-                .unsubscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(subscriber);
-    }
+//
+//    private <T> void toSubscribe(Observable<T> observable,Subscriber<T> subscriber){
+//        observable.subscribeOn(Schedulers.io())
+//                .unsubscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(subscriber);
+//    }
 }
