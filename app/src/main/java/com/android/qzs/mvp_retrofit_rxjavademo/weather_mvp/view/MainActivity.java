@@ -2,6 +2,7 @@ package com.android.qzs.mvp_retrofit_rxjavademo.weather_mvp.view;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -47,11 +48,20 @@ tv_show.setText("  "+weatherModel.getRetData().getWeather()+"  "+weatherModel.ge
        switch (v.getId()){
            case R.id.btn:
 
-               weatherpresenter.loadWeatherData(MainActivity.this,edt.getText().toString());
+               weatherpresenter.loadDataByRetrofitRxjava11111(edt.getText().toString());
 
                break;
        }
 
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (weatherpresenter!=null){
+            weatherpresenter.detachView();
+            Log.e("RXJAVA","毁灭");
+        }
     }
 }

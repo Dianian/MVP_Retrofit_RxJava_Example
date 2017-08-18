@@ -4,7 +4,7 @@ package com.android.qzs.mvp_retrofit_rxjavademo.weather_mvp.model;
  * Created by qzs on 2017/7/25.
  */
 
-public class WeatherModel {
+    public class WeatherModel {
 
 
     /**

@@ -9,9 +9,6 @@ import com.android.qzs.mvp_retrofit_rxjavademo.weather_mvp.model.WeatherModel;
  */
 public interface WeatherView {
 
-    void getWeatherSuccess(WeatherModel loginModel);
-
-
-
+    void getWeatherSuccess(WeatherModel weatherModel);
 
 }

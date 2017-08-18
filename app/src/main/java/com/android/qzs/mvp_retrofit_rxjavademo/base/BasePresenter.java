@@ -16,7 +16,10 @@ import rx.subscriptions.CompositeSubscription;
 
 
 /**
- * Created by QZS
+ *
+ *
+ *
+ *
  */
 public class BasePresenter<V> {
     public V mvpView;
@@ -25,9 +28,8 @@ public class BasePresenter<V> {
     private CompositeSubscription mCompositeSubscription;
 
     public void attachView(V mvpView) {
-//Log.e("加载了","哈哈哈哈哈哈哈");
-      //  apiStores = ApiClient.retrofit().create(ApiService.class);
         this.mvpView = mvpView;
+        apiStores = ApiClient.retrofit().create(ApiService.class);
     }
 
     public void detachView() {
@@ -35,23 +37,13 @@ public class BasePresenter<V> {
         onUnsubscribe();
     }
 
-
-
-
     //RXjava取消注册，以避免内存泄露
     public void onUnsubscribe() {
         if (mCompositeSubscription != null && mCompositeSubscription.hasSubscriptions()) {
             mCompositeSubscription.unsubscribe();
         }
     }
-    public void BaseLoadWeatherData(String cityid,Subscriber<WeatherModel> subscriber){
-        Log.e("1111","2222222");
-        apiStores.loadDataByRetrofitRxjava(cityid)
-                .subscribeOn(Schedulers.io())
-                .unsubscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(subscriber);
-    }
+
 
     public <T> void addSubscription(Observable<T> observable, Subscriber<T> subscriber) {
         if (mCompositeSubscription == null) {
