@@ -69,16 +69,21 @@ public interface ApiService {
 
 **5.连接通信(已封装)**
 其实就是下面的代码，这些我已经封装了，请下载查看。
+
 ```
- OkHttpClient.Builder builder = new OkHttpClient.Builder();
-        builder.connectTimeout(DEFAULT_TIMEOUT, TimeUnit.SECONDS);
-        mRetrofit = new Retrofit.Builder()
-                .client(builder.build())
-                .baseUrl(ApiService.API_SERVER_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
-                .build();
-        mApiService = mRetrofit.create(ApiService.class);
+    public static Retrofit retrofit() {
+        if (mRetrofit == null) {
+            OkHttpClient.Builder builder = new OkHttpClient.Builder();
+            OkHttpClient okHttpClient = builder.build();
+            mRetrofit = new Retrofit.Builder()
+                    .baseUrl(ApiService.API_SERVER_URL)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                    .client(okHttpClient)
+                    .build();
+        }
+        return mRetrofit;
+    }
 ```
 
 **6.View类**
@@ -120,15 +125,29 @@ public class MainActivity extends AppCompatActivity  implements WeatherView,View
 tv_show.setText("  "+weatherModel.getRetData().getWeather()+"  "+weatherModel.getRetData().getWD());
 
     }
+
+
     @Override
     public void onClick(View v) {
        switch (v.getId()){
            case R.id.btn:
-               weatherpresenter.loadWeatherData(MainActivity.this,edt.getText().toString());
+
+               weatherpresenter.loadDataByRetrofitRxjava11111(edt.getText().toString());
+
                break;
        }
+
+
     }
-}
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (weatherpresenter!=null){
+            weatherpresenter.detachView();
+            Log.e("RXJAVA","毁灭");
+        }
+    }
 
 ```
 
@@ -139,33 +158,74 @@ tv_show.setText("  "+weatherModel.getRetData().getWeather()+"  "+weatherModel.ge
 public class BasePresenter<V> {
     public V mvpView;
 
-    public void attachView(V mvpView) {
+    protected ApiService apiStores;
+    private CompositeSubscription mCompositeSubscription;
 
-    
+    public void attachView(V mvpView) {
         this.mvpView = mvpView;
+        apiStores = ApiClient.retrofit().create(ApiService.class);
+    }
+
+    public void detachView() {
+        this.mvpView = null;
+        onUnsubscribe();
+    }
+
+    //RXjava取消注册，以避免内存泄露
+    public void onUnsubscribe() {
+        if (mCompositeSubscription != null && mCompositeSubscription.hasSubscriptions()) {
+            mCompositeSubscription.unsubscribe();
+        }
+    }
+
+
+    public <T> void addSubscription(Observable<T> observable, Subscriber<T> subscriber) {
+        if (mCompositeSubscription == null) {
+            mCompositeSubscription = new CompositeSubscription();
+        }
+        mCompositeSubscription.add(observable
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(subscriber));
     }
 }
+
 ```
+
 下面是WeatherPresenter：
+
 
 ```
 public class WeatherPresenter extends BasePresenter<WeatherView>{
+
+
+
 
     public WeatherPresenter(WeatherView view) {
         attachView(view);
     }
 
-   public void loadWeatherData(final Context context, String cityid) {
-       Log.e("1111","111111");
-       RetrofitUtil.getInstance().BaseLoadWeatherData(cityid,new ProgressSubscriber<WeatherModel>(new SubscriberOnNextListener<WeatherModel>() {
-           @Override
-           public void onNext(final WeatherModel weatherModel) {
-               Log.e("1111","333333"+weatherModel.getRetData().getCity()+" "+weatherModel.getRetData().getDate()+"  "+weatherModel.getRetData().getWeather());
 
-                       mvpView.getWeatherSuccess(weatherModel);
-           }
-       },context));
-//
-   }
+
+    public void loadDataByRetrofitRxjava11111(String cityId) {
+        addSubscription(apiStores.loadDataByRetrofitRxjava(cityId), new Subscriber<WeatherModel>() {
+            @Override
+            public void onCompleted() {
+
+            }
+
+            @Override
+            public void onError(Throwable e) {
+
+            }
+
+            @Override
+            public void onNext(WeatherModel weatherModel) {
+          //  Log.e("请求成功","111");
+                mvpView.getWeatherSuccess(weatherModel);
+            }
+        });
+
+    }
 }
 ```
